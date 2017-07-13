@@ -32,9 +32,7 @@ exports.iamHome = (request, response) => {
   let redirectUrl = 'urn:ietf:wg:oauth:2.0:oob';
   let auth = new googleAuth();
   var oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
-  let token = '{"access_token":"ya29.GluFBEbuA01kY9Eo3fF6RTvAXr4JaCs2aWHxZ3-KQejJWE7b_-2-OxPpExJMzHhZ3YdCrya3gJrlqyb2JKGMM4xr-Gto-aBXuh20syqECWas9nghnLTr3nmeclbW",'+
-              '"refresh_token":"1/UUR_ORDDadCoQxdgZpfoACFeRYxtUY5lK-MK-ze6z_8",'+
-              '"token_type":"Bearer","expiry_date":1499876043952}'
+  let token = '{"access_token":"ya29.GluGBKMdJtvEr92C2RgCEeBTgxmJWh0gnhnwXSw5OvrBXL-1ugAdlIXSFgE0i9hGnFHnGupajPsjEmn_ZH92sOilV0QNfIiUB-WPJiTHQ-qF-SoBnH_OKM2OiqOl","refresh_token":"1/5PKjoB-0ciDdkxtnDQDd8tMSuTu2799j3vYcYFv_feOVgeSEBEpr3ScMXjYfvh6j","token_type":"Bearer","expiry_date":1499964946598}'
   oauth2Client.credentials = JSON.parse(token);
 
   /**
@@ -100,10 +98,42 @@ function listTaskListTasks(app) {
   });
 }
 
+/**
+ * Creates a task lists
+ *
+ * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
+ */
+function createTaskList(app) {
+  let service = google.tasks('v1');
+
+  let listdate = app.getArgument('date');
+  let givenName = app.getArgument('given-name');
+  let location = app.getArgument('location');
+
+  let title = givenName + ' ' + location.shortcut + ' ' + listdate;
+  let tasklist = {
+    "title" : title
+  } 
+
+  service.tasklists.insert({
+    auth: oauth2Client,
+    resource: tasklist,
+  }, function(err, response) {
+    if (err) {
+      console.log('The API returned an error: ' + err);
+      return;
+    }
+    console.log(response);
+    app.ask(app.buildRichResponse()
+            .addSimpleResponse('List created with title ' + title));
+  });
+}
+
 
 
 let actionMap = new Map();
   actionMap.set('list.TaskLists', listTaskLists);
+  actionMap.set('create.tasklist', createTaskList);
 
   app.handleRequest(actionMap);
 
